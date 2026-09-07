@@ -10,7 +10,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-          - name: Display Received application Information
+          - name: Display Received application Informatio
             run: |
               echo "SecOps Repo received Application trigger"
               echo "Application Repository: ${{github.event.client_payload.repository}}"

@@ -1,4 +1,3 @@
-
 name: Step 2 - Receive Application Trigger
 
 on:
@@ -13,6 +12,9 @@ jobs:
 
     steps:
 
+      # -----------------------------------------
+      # STEP 1 - Display trigger information
+      # -----------------------------------------
       - name: Display Received Application Information
         run: |
           echo "SecOps Repo received Application trigger"
@@ -22,6 +24,9 @@ jobs:
           echo "Developer Name: ${{ github.event.client_payload.name }}"
           echo "Developer Email: ${{ github.event.client_payload.email }}"
 
+      # -----------------------------------------
+      # STEP 2 - Checkout exact application commit
+      # -----------------------------------------
       - name: Checkout Exact Application Commit
         uses: actions/checkout@v4
         with:
@@ -29,6 +34,9 @@ jobs:
           ref: ${{ github.event.client_payload.commit_sha }}
           path: application
 
+      # -----------------------------------------
+      # STEP 3 - Verify checked out commit
+      # -----------------------------------------
       - name: Verify Checked Out Commit
         working-directory: application
         run: |
@@ -36,13 +44,13 @@ jobs:
           echo "Checked Out Commit SHA:"
           git rev-parse HEAD
 
+      # -----------------------------------------
+      # STEP 4 - Secret scanning using Gitleaks
+      # -----------------------------------------
       - name: Scan for Application Secrets
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Step 4 - Scan for Application Secrets
         run: |
+          echo "Starting Gitleaks secret scan..."
+
           docker run --rm \
             -v "${GITHUB_WORKSPACE}/application:/repo" \
             ghcr.io/gitleaks/gitleaks:latest \
@@ -50,4 +58,8 @@ jobs:
             --source=/repo \
             --no-git \
             --no-banner \
+            --redact \
+            --verbose \
             --exit-code 1
+
+          echo "Gitleaks scan completed successfully."

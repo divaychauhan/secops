@@ -63,3 +63,9 @@ jobs:
             --exit-code 1
 
           echo "Gitleaks scan completed successfully."
+
+      - name: step 4A - list scannned files
+        run: |
+           echo "files inside gitleaks scanning scope:"
+           echo "==================================="
+           find application -type f -print 

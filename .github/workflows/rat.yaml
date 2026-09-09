@@ -1,4 +1,5 @@
 name: SecOps Pipeline
+
 on:
   repository_dispatch:
     types:
@@ -48,3 +49,14 @@ jobs:
           echo "Files Inside Gitleaks Scanning Scope:"
           echo "====================================="
           find application -type f -print
+
+  # Stage 2 : Dependency Scanning
+  trivy:
+    name: Trivy - Dependency Scanning
+    runs-on: ubuntu-latest
+    needs: gitleaks
+
+    steps:
+      - name: Trivy Testing Work
+        run: |
+          echo "Trivy Testing Work"

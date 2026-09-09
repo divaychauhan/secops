@@ -1,32 +1,23 @@
-name: Step 2 - Receive Application Trigger
-
+name: SecOps Pipeline
 on:
   repository_dispatch:
     types:
       - application_push
 
 jobs:
-  receive-trigger:
-    name: Verify Cross-Repo Communication
+  # Stage 1 : Secret Scanning
+  gitleaks:
+    name: Gitleaks - Secret Scanning
     runs-on: ubuntu-latest
 
     steps:
-
-      # -----------------------------------------
-      # STEP 1 - Display trigger information
-      # -----------------------------------------
       - name: Display Received Application Information
         run: |
           echo "SecOps Repo received Application trigger"
           echo "Application Repository: ${{ github.event.client_payload.repository }}"
           echo "Application Branch: ${{ github.event.client_payload.branch }}"
           echo "Application Commit SHA: ${{ github.event.client_payload.commit_sha }}"
-          echo "Developer Name: ${{ github.event.client_payload.name }}"
-          echo "Developer Email: ${{ github.event.client_payload.email }}"
 
-      # -----------------------------------------
-      # STEP 2 - Checkout exact application commit
-      # -----------------------------------------
       - name: Checkout Exact Application Commit
         uses: actions/checkout@v4
         with:
@@ -34,23 +25,15 @@ jobs:
           ref: ${{ github.event.client_payload.commit_sha }}
           path: application
 
-      # -----------------------------------------
-      # STEP 3 - Verify checked out commit
-      # -----------------------------------------
       - name: Verify Checked Out Commit
-        working-directory: application
         run: |
           echo "Application Source Successfully checked out"
           echo "Checked Out Commit SHA:"
-          git rev-parse HEAD
+          git -C application rev-parse HEAD
 
-      # -----------------------------------------
-      # STEP 4 - Secret scanning using Gitleaks
-      # -----------------------------------------
-      - name: Scan for Application Secrets
+      # Scan the checked-out application source for secrets
+      - name: Step 4 - Scan for Application Secrets
         run: |
-          echo "Starting Gitleaks secret scan..."
-
           docker run --rm \
             -v "${GITHUB_WORKSPACE}/application:/repo" \
             ghcr.io/gitleaks/gitleaks:latest \
@@ -58,14 +41,10 @@ jobs:
             --source=/repo \
             --no-git \
             --no-banner \
-            --redact \
-            --verbose \
             --exit-code 1
 
-          echo "Gitleaks scan completed successfully."
-
-      - name: step 4A - list scannned files
+      - name: Step 4A - List Scanned Files
         run: |
-           echo "files inside gitleaks scanning scope:"
-           echo "==================================="
-           find application -type f -print 
+          echo "Files Inside Gitleaks Scanning Scope:"
+          echo "====================================="
+          find application -type f -print
